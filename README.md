@@ -11,6 +11,8 @@ against each of the last ten seasons, their average, and the biggest and leanest
 - `data.json` — processed season data, one entry per resort.
 - `scripts/refresh.sh` — downloads daily readings and rebuilds `data.json`.
 - `scripts/build_data.py` — turns the raw readings into `data.json`; the resort-to-station list lives here.
+- `reported.json` — the season total each resort reports on its own snow report, where it publishes one.
+- `scripts/fetch_reported.py` — reads those resort reports and rebuilds `reported.json`.
 - `scripts/build_site.sh` — rebuilds `index.html` after a change to `artifact.html`.
 
 ## Data
@@ -20,11 +22,21 @@ Daily snow depth and snow water equivalent from USDA NRCS SNOTEL stations
 day's rise in snow depth, so totals run well below resort-reported figures.
 A season is October 1 to May 31.
 
+Resort-reported totals come from each resort's own snow report or the public feed behind it
+(Snowbird, Alta, Taos, Jackson Hole, Big Sky, Aspen Snowmass, Wolf Creek). Winter Park is linked
+but not read automatically, and a resort that has not published a season total shows a dash.
+
 ## Refresh the data
 
 ```bash
 ./scripts/refresh.sh
 ```
+
+```bash
+python3 scripts/fetch_reported.py reported.json
+```
+
+A GitHub Actions workflow runs both twice a day from October through June and commits the results.
 
 Needs `curl` and Python 3, and network access to `wcc.sc.egov.usda.gov`.
 

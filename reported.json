@@ -1,0 +1,109 @@
+{
+ "fetched": "2026-11-25",
+ "resorts": {
+  "winter-park": [
+   {
+    "name": "Winter Park",
+    "url": "https://www.winterparkresort.com/the-mountain/mountain-report",
+    "total": null,
+    "base": null,
+    "asOf": null,
+    "auto": false,
+    "secondary": false
+   }
+  ],
+  "aspen-snowmass": [
+   {
+    "name": "Aspen Mountain",
+    "url": "https://www.aspensnowmass.com/four-mountains/snow-report",
+    "total": null,
+    "base": 0.0,
+    "asOf": "2026-11-25",
+    "auto": true,
+    "secondary": false
+   },
+   {
+    "name": "Snowmass",
+    "url": "https://www.aspensnowmass.com/four-mountains/snow-report",
+    "total": null,
+    "base": 0.0,
+    "asOf": "2026-11-25",
+    "auto": true,
+    "secondary": false
+   }
+  ],
+  "snowbird-alta": [
+   {
+    "name": "Snowbird",
+    "url": "https://www.snowbird.com/the-mountain/mountain-report/current-conditions-weather/",
+    "total": 80.0,
+    "base": 40.0,
+    "asOf": "2026-11-25",
+    "auto": true,
+    "secondary": false
+   },
+   {
+    "name": "Alta",
+    "url": "https://www.alta.com/weather",
+    "total": 71.0,
+    "base": 38.0,
+    "asOf": "2026-11-25",
+    "auto": true,
+    "secondary": false
+   }
+  ],
+  "taos": [
+   {
+    "name": "Taos Ski Valley",
+    "url": "https://www.skitaos.com/weather",
+    "total": 23.8,
+    "base": 19.0,
+    "asOf": "2026-11-25",
+    "auto": true,
+    "secondary": false
+   }
+  ],
+  "jackson-hole": [
+   {
+    "name": "Jackson Hole summit",
+    "url": "https://www.jacksonhole.com/mountain-report",
+    "total": 49.0,
+    "base": 24.0,
+    "asOf": "2026-11-24",
+    "auto": true,
+    "secondary": false
+   },
+   {
+    "name": "Jackson Hole mid-mountain",
+    "url": "https://www.jacksonhole.com/mountain-report",
+    "total": 23.0,
+    "base": 10.0,
+    "asOf": "2026-11-24",
+    "auto": true,
+    "secondary": true
+   }
+  ],
+  "big-sky": [
+   {
+    "name": "Big Sky",
+    "url": "https://www.bigskyresort.com/snow-report",
+    "total": null,
+    "base": 18.0,
+    "asOf": "2026-11-25",
+    "auto": true,
+    "secondary": false
+   }
+  ],
+  "wolf-creek": [
+   {
+    "name": "Wolf Creek",
+    "url": "https://wolfcreekski.com/snow-report/",
+    "total": 72.0,
+    "base": 39.0,
+    "asOf": "2026-11-25",
+    "auto": true,
+    "secondary": false
+   }
+  ]
+ }
+}

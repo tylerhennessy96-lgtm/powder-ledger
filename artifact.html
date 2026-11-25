@@ -76,6 +76,8 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .stake .val { font-family: var(--display); font-weight: 700; font-size: 34px; line-height: 1; font-variant-numeric: tabular-nums; }
 .stake .val small { font-size: 16px; font-weight: 600; margin-left: 2px; color: var(--hero-ink-2); }
 .stake .vs { font-size: 12px; color: var(--hero-ink-2); font-variant-numeric: tabular-nums; }
+.stake .rep { font-size: 12px; color: var(--hero-ink-2); font-variant-numeric: tabular-nums; align-self: stretch; border-top: 1px solid var(--hero-rule); margin-top: 6px; padding-top: 5px; }
+.stake .rep b { color: var(--hero-ink); font-weight: 600; }
 .stake .snowfill { transform-origin: 50% 100%; transform-box: fill-box; animation: rise .9s cubic-bezier(.2,.8,.2,1) both; }
 @keyframes rise { from { transform: scaleY(.35); } to { transform: scaleY(1); } }
 .stake-key { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 12px; color: var(--hero-ink-2); margin: -8px 0 0; padding: 0; list-style: none; }
@@ -107,6 +109,16 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
 .tile.lead .v { font-size: clamp(64px, 12vw, 92px); line-height: 0.95; color: var(--accent); }
 .tile .d { font-size: 13px; color: var(--ink-2); font-variant-numeric: tabular-nums; }
 
+.reported { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2.6fr); gap: 14px 28px; align-items: start; }
+.reported h3 { font-family: var(--display); font-weight: 600; font-size: 22px; text-transform: uppercase; letter-spacing: 0.03em; margin: 0 0 4px; line-height: 1.1; }
+.reported p { margin: 0; color: var(--ink-2); font-size: 13px; }
+.rep-items { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); row-gap: 14px; }
+.rep-item { padding: 0 16px; border-left: 1px solid var(--line); min-width: 0; }
+.rep-item .k { font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-3); font-weight: 600; }
+.rep-item .v { font-family: var(--display); font-weight: 700; font-size: 36px; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.rep-item .v small { font-size: 0.45em; font-weight: 600; color: var(--ink-2); margin-left: 3px; }
+.rep-item .d { font-size: 13px; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+.rep-item a { font-size: 13px; color: var(--ink); text-underline-offset: 2px; }
 .card { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 18px; min-width: 0; }
 .card-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 16px; margin-bottom: 12px; }
 .card h3 { font-family: var(--display); font-weight: 600; font-size: 24px; text-transform: uppercase; letter-spacing: 0.03em; margin: 0; line-height: 1.1; }
@@ -175,6 +187,10 @@ footer a { color: inherit; }
   .stake .val small { font-size: 14px; }
   .stake .nm { font-size: 14px; letter-spacing: 0.02em; min-height: 2.2em; display: flex; align-items: center; }
   .stake .vs { font-size: 11px; }
+  .stake .rep { font-size: 11px; }
+  .reported { grid-template-columns: minmax(0, 1fr); }
+  .rep-items { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .rep-item { padding: 0 12px; }
   td, th { padding: 7px 5px; font-size: 14px; }
   th { font-size: 11px; }
   td:first-child { white-space: normal; }
@@ -210,6 +226,7 @@ footer a { color: inherit; }
     <div class="pickerbar"><div class="picker" id="picker" aria-label="Resort"></div></div>
     <div class="resort-head"><h2 id="rname"></h2><p id="rmeta"></p></div>
     <section class="tiles" id="tiles" aria-label="Season summary"></section>
+    <section class="reported" id="reported" aria-label="Resort-reported snowfall" hidden></section>
 
     <section class="card">
       <div class="card-head">
@@ -240,6 +257,7 @@ footer a { color: inherit; }
     <footer>
       <p><strong>Where the numbers come from.</strong> Daily readings from USDA NRCS SNOTEL stations at or near each resort: <span id="stations"></span>. A season runs October 1 to May 31.</p>
       <p>Snowfall is estimated by adding up each day's rise on the station's snow-depth sensor. Snow settles between readings, so these totals run lower than the figures resorts report from their own snow stakes. They are consistent from year to year, which is what makes the comparisons fair.</p>
+      <p>Resort-reported totals are read from each resort's own snow report, where the resort publishes one. Resorts measure fresh snow on the upper mountain, which is the main reason their totals run higher.</p>
       <p><a href="https://www.nrcs.usda.gov/resources/data-and-reports/snow-and-water-interactive-map">NRCS snow and water data</a></p>
     </footer>
   </div>
@@ -252,13 +270,16 @@ footer a { color: inherit; }
   var esc = function (s) { return String(s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); };
   var MONTHS = [["Oct", 31], ["Nov", 30], ["Dec", 31], ["Jan", 31], ["Feb", 28], ["Mar", 31], ["Apr", 30], ["May", 31]];
   var PICK_COLORS = ["var(--s4)", "var(--s5)", "var(--s6)"];
-  var DATA = null;
+  var DATA = null, REPORTED = null;
   var state = { resort: 0, metric: "cum", showAvg: true, showBand: true, showMax: true, showMin: true, picks: [], hover: null, zoom: false };
   try { var saved = JSON.parse(localStorage.getItem("powder-ledger") || "null"); if (saved && typeof saved.resort === "number") state.resort = saved.resort; } catch (e) {}
 
   function dayLabel(i) { var m = 0; while (m < 7 && i >= MONTHS[m][1]) { i -= MONTHS[m][1]; m++; } return MONTHS[m][0] + " " + (i + 1); }
   function fmt(v) { return String(Math.round(v)); }
   function last(a) { return a[a.length - 1]; }
+  function shortDate(iso) { var d = new Date(String(iso) + "T12:00:00"); return isNaN(d) ? "" : d.toLocaleDateString("en-US", { month: "short", day: "numeric" }); }
+  function reportedItems(r) { var x = REPORTED && REPORTED.resorts && REPORTED.resorts[r.id]; return Array.isArray(x) ? x : []; }
+  function isNum(v) { return typeof v === "number" && isFinite(v); }
   function shortSeason(s) { return "’" + s.slice(2, 4) + "–" + s.slice(5); }
 
   function derive(r) {
@@ -319,13 +340,49 @@ footer a { color: inherit; }
       b.type = "button"; b.className = "stake"; b.id = "stake-" + i;
       b.setAttribute("aria-pressed", String(i === state.resort));
       var vs = a > 0.5 ? (v >= a ? "▲ " : "▼ ") + Math.round((v / a) * 100) + "% of avg" : "avg " + fmt(a) + "″";
-      b.innerHTML = stakeSvg(D, sc) + '<span class="nm">' + esc(r.name) + '</span><span class="val">' + fmt(v) + "<small>in</small></span>" + '<span class="vs">' + vs + "</span>";
+      b.innerHTML = stakeSvg(D, sc) + '<span class="nm">' + esc(r.name) + '</span><span class="val">' + fmt(v) + "<small>in</small></span>" + '<span class="vs">' + vs + '</span><span class="rep" id="rep-' + i + '" hidden></span>';
       b.setAttribute("aria-label", r.name + ": " + fmt(v) + " inches so far, average by now " + fmt(a) + " inches");
       b.addEventListener("click", function () { selectResort(i); });
       box.appendChild(b);
     });
     $("#bandkey").textContent = "Each stake band is " + sc.band + " ft";
     $("#stakekey").hidden = false;
+  }
+
+  function updateStakeReps() {
+    DATA.resorts.forEach(function (r, i) {
+      var el = $("#rep-" + i), items = reportedItems(r); if (!el || !items.length) return;
+      var t = items.filter(function (it) { return !it.secondary && isNum(it.total); }).map(function (it) { return Math.round(it.total); });
+      var lo = Math.min.apply(null, t), hi = Math.max.apply(null, t);
+      el.textContent = "Resort ";
+      var b = document.createElement("b"); b.textContent = !t.length ? "\u2014" : lo === hi ? hi + "\u2033" : lo + "\u2013" + hi + "\u2033";
+      el.appendChild(b); el.hidden = false;
+      el.title = t.length ? "Season total the resort reports" : "The resort has not published a season total";
+    });
+  }
+  function renderReported() {
+    var box = $("#reported"), r = DATA.resorts[state.resort], items = reportedItems(r), D = derive(r);
+    if (!items.length) { box.hidden = true; return; }
+    box.innerHTML = ""; box.hidden = false;
+    function el(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+    var head = el("div", "rep-head");
+    head.appendChild(el("h3", "", "What the resort reports"));
+    head.appendChild(el("p", "", "Season totals from the resort's own snow report. This tracker's station-based estimate for the same stretch is " + fmt(D.cur.cum[D.idx]) + " in."));
+    var list = el("div", "rep-items");
+    items.forEach(function (it) {
+      var c = el("div", "rep-item"), has = isNum(it.total);
+      c.appendChild(el("div", "k", it.name));
+      var v = el("div", "v", has ? fmt(it.total) : "\u2014"); if (has) v.appendChild(el("small", "", "in")); c.appendChild(v);
+      var parts = [has ? "Season total" : it.auto ? "No season total published yet" : "Season total not available here"];
+      if (isNum(it.base) && it.base > 0) parts.push(fmt(it.base) + " in base");
+      if (it.asOf && shortDate(it.asOf)) parts.push("reported " + shortDate(it.asOf));
+      c.appendChild(el("div", "d", parts.join(" \u00B7 ")));
+      if (typeof it.url === "string" && it.url.indexOf("https://") === 0) {
+        var a = el("a", "", "Open the snow report"); a.href = it.url; a.target = "_blank"; a.rel = "noopener"; c.appendChild(a);
+      }
+      list.appendChild(c);
+    });
+    box.appendChild(head); box.appendChild(list);
   }
 
   /* ---------- ledger ---------- */
@@ -366,7 +423,7 @@ footer a { color: inherit; }
       tile("", "Average season", fmt(c.avg[n - 1]), "in", D.past.length + " seasons, " + D.past[0].season + " to " + last(D.past).season) +
       tile("", "Biggest season", fmt(c.maxS.cum[n - 1]), "in", c.maxS.season) +
       tile("", "Leanest season", fmt(c.minS.cum[n - 1]), "in", c.minS.season);
-    renderSeasons(); renderLegend(); renderChart(animate); renderTable();
+    renderReported(); renderSeasons(); renderLegend(); renderChart(animate); renderTable();
   }
 
   function visibleSeasons() {
@@ -634,6 +691,10 @@ footer a { color: inherit; }
     $("#m-depth").addEventListener("click", function () { setMetric("depth"); });
     $("#z-full").addEventListener("click", function () { setZoom(false); });
     $("#z-now").addEventListener("click", function () { setZoom(true); });
+    fetch("reported.json", { cache: "no-store" })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (j) { if (j && j.resorts) { REPORTED = j; updateStakeReps(); renderReported(); } })
+      .catch(function () {});
   }
   function setZoom(z) {
     state.zoom = z; state.hover = null;

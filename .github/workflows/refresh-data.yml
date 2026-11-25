@@ -31,15 +31,18 @@ jobs:
           assert 0 <= age <= 3, f"data is {age} days old"
           print("through", d["through"])
           PY
-      - name: Commit data.json if it changed
+      - name: Read each resort's reported season total
+        continue-on-error: true
+        run: python3 scripts/fetch_reported.py reported.json
+      - name: Commit the data files if they changed
         run: |
-          if git diff --quiet -- data.json; then
-            echo "No new readings."
+          git add data.json reported.json
+          if git diff --cached --quiet; then
+            echo "Nothing new."
             exit 0
           fi
           through=$(python3 -c "import json;print(json.load(open('data.json'))['through'])")
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data.json
           git commit -m "Update snowfall data through ${through}"
           git push
