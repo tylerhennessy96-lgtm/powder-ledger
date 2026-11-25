@@ -1,0 +1,45 @@
+name: Refresh snowfall data
+
+on:
+  schedule:
+    # 17:20 and 23:20 UTC daily, October through June (the season plus a margin)
+    - cron: "20 17,23 * 1-6,10-12 *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: refresh-data
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download SNOTEL readings and rebuild data.json
+        run: bash scripts/refresh.sh
+      - name: Check the new data file
+        run: |
+          python3 - <<'PY'
+          import json, datetime as dt
+          d = json.load(open("data.json"))
+          assert len(d["resorts"]) == 7, len(d["resorts"])
+          assert all(len(r["seasons"]) == 11 for r in d["resorts"])
+          age = (dt.date.today() - dt.date.fromisoformat(d["through"])).days
+          assert 0 <= age <= 3, f"data is {age} days old"
+          print("through", d["through"])
+          PY
+      - name: Commit data.json if it changed
+        run: |
+          if git diff --quiet -- data.json; then
+            echo "No new readings."
+            exit 0
+          fi
+          through=$(python3 -c "import json;print(json.load(open('data.json'))['through'])")
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data.json
+          git commit -m "Update snowfall data through ${through}"
+          git push
