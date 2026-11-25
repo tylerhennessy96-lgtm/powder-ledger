@@ -99,6 +99,10 @@ button { font: inherit; color: inherit; cursor: pointer; }
 /* ---------- ledger ---------- */
 main.wrap { padding-block: 26px 40px; }
 #app { display: flex; flex-direction: column; gap: 22px; }
+/* the resort picker stays pinned under the top edge once you scroll past it */
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--bg); }
+.pickerbar { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--bg); padding-block: 8px; margin-block: -8px;
+  box-shadow: 0 0 0 100vmax var(--bg), 0 1px 0 100vmax var(--line); clip-path: inset(0 -100vmax -1px -100vmax); }
 .picker { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; margin-inline: -4px; padding: 4px; }
 .picker::-webkit-scrollbar { display: none; }
 .chip { flex: none; border: 1px solid var(--line); background: var(--surface); color: var(--ink-2); border-radius: 999px; padding: 6px 13px; font-size: 14px; font-weight: 500; white-space: nowrap; display: inline-flex; align-items: center; gap: 7px; min-height: 34px; }
@@ -217,7 +221,7 @@ footer a { color: inherit; }
 <main class="wrap">
   <div class="msg" id="msg">Loading station readings…</div>
   <div id="app" hidden>
-    <div class="picker" id="picker" aria-label="Resort"></div>
+    <div class="pickerbar"><div class="picker" id="picker" aria-label="Resort"></div></div>
     <div class="resort-head"><h2 id="rname"></h2><p id="rmeta"></p></div>
     <section class="tiles" id="tiles" aria-label="Season summary"></section>
 
@@ -344,7 +348,12 @@ footer a { color: inherit; }
     try { localStorage.setItem("powder-ledger", JSON.stringify({ resort: i })); } catch (e) {}
     document.querySelectorAll(".stake").forEach(function (b, j) { b.setAttribute("aria-pressed", String(j === i)); });
     document.querySelectorAll("#picker .chip").forEach(function (b, j) { b.setAttribute("aria-pressed", String(j === i)); });
+    centerChip();
     renderResort(true);
+  }
+  function centerChip() {
+    var box = $("#picker"), chip = box.querySelector('.chip[aria-pressed="true"]');
+    if (chip && box.scrollWidth > box.clientWidth) box.scrollLeft = chip.offsetLeft - (box.clientWidth - chip.offsetWidth) / 2;
   }
   function renderPicker() {
     var box = $("#picker"); box.innerHTML = "";
