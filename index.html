@@ -1,0 +1,645 @@
+<meta name="claude:viewport-fit-sides" content="cover">
+<title>Powder Ledger</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600&display=swap">
+<style>
+/* Layout: a dusk-sky hero holding seven snow stakes (the resort picker), then one resort's
+   ledger below it: headline numbers, the season curve, and the season-by-season table. */
+:root {
+  --bg: #edf1f6;
+  --surface: #ffffff;
+  --ink: #0e1a2b;
+  --ink-2: #47566b;
+  --ink-3: #6f7c8f;
+  --line: #d5dde8;
+  --accent: #257de0;
+  --band: rgba(37, 80, 140, 0.10);
+  --wash: rgba(37, 125, 224, 0.10);
+  --s1: #257de0; --s2: #f47230; --s3: #00b894; --s4: #f2a600; --s5: #ee7fac; --s6: #008a17;
+  --avg: #47566b;
+  /* hero is one fixed dusk scene in both themes */
+  --hero-top: #0a1630;
+  --hero-mid: #233f73;
+  --hero-low: #7d6f9e;
+  --hero-ink: #f3f6fc;
+  --hero-ink-2: #c2cde2;
+  --hero-card: rgba(7, 14, 32, 0.58);
+  --hero-card-on: rgba(12, 26, 58, 0.86);
+  --hero-rule: rgba(214, 226, 248, 0.22);
+  --snow: #f7fafe;
+  --snow-shade: #c9d8ee;
+  --stake-a: #ff8a3d;
+  --stake-b: #1b2238;
+  --display: "Barlow Condensed", "Arial Narrow", "Helvetica Neue", Arial, sans-serif;
+  --body: "Barlow", "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #080f1c; --surface: #111c2e; --ink: #eaf0f8; --ink-2: #aab7ca; --ink-3: #8090a6;
+    --line: #23324b; --accent: #338ced; --band: rgba(150, 185, 235, 0.13); --wash: rgba(51, 140, 237, 0.16);
+    --s1: #338ced; --s2: #e76624; --s3: #00a888; --s4: #d28e05; --s5: #e24d8b; --s6: #0aac23;
+    --avg: #aab7ca;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #080f1c; --surface: #111c2e; --ink: #eaf0f8; --ink-2: #aab7ca; --ink-3: #8090a6;
+  --line: #23324b; --accent: #338ced; --band: rgba(150, 185, 235, 0.13); --wash: rgba(51, 140, 237, 0.16);
+  --s1: #338ced; --s2: #e76624; --s3: #00a888; --s4: #d28e05; --s5: #e24d8b; --s6: #0aac23;
+  --avg: #aab7ca;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 15px; line-height: 1.5; }
+button { font: inherit; color: inherit; cursor: pointer; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.wrap { max-width: 1080px; margin-inline: auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.num { font-family: var(--display); font-variant-numeric: tabular-nums; }
+
+/* ---------- hero ---------- */
+.hero { position: relative; overflow: hidden; color: var(--hero-ink);
+  background: linear-gradient(180deg, var(--hero-top) 0%, var(--hero-mid) 58%, var(--hero-low) 100%); }
+.hero :focus-visible { outline-color: var(--hero-ink); }
+#sky { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.hero .wrap { position: relative; padding-block: 28px 26px; display: flex; flex-direction: column; gap: 22px; }
+.eyebrow { font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--hero-ink-2); font-weight: 500; }
+.hero h1 { font-family: var(--display); font-weight: 700; font-size: clamp(44px, 9vw, 84px); line-height: 0.92; letter-spacing: 0.005em; text-transform: uppercase; margin: 6px 0 10px; text-wrap: balance; }
+.hero p.lede { margin: 0; max-width: 46ch; color: var(--hero-ink-2); font-size: 16px; }
+.stakes { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 10px; }
+.stake { background: var(--hero-card); border: 1px solid var(--hero-rule); border-radius: 10px; padding: 10px 6px 12px; color: var(--hero-ink);
+  display: flex; flex-direction: column; align-items: center; gap: 2px; min-width: 0; text-align: center;
+  -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); transition: background-color .2s, border-color .2s, transform .2s; }
+.stake:hover { border-color: rgba(214, 226, 248, 0.5); }
+.stake[aria-pressed="true"] { background: var(--hero-card-on); border-color: var(--hero-ink); }
+.stake svg { width: 100%; max-width: 116px; height: auto; display: block; }
+.stake .nm { font-family: var(--display); font-weight: 600; font-size: 17px; letter-spacing: 0.04em; text-transform: uppercase; line-height: 1.1; min-height: 2.2em; display: flex; align-items: center; }
+.stake .val { font-family: var(--display); font-weight: 700; font-size: 34px; line-height: 1; font-variant-numeric: tabular-nums; }
+.stake .val small { font-size: 16px; font-weight: 600; margin-left: 2px; color: var(--hero-ink-2); }
+.stake .vs { font-size: 12px; color: var(--hero-ink-2); font-variant-numeric: tabular-nums; }
+.stake .snowfill { transform-origin: 50% 100%; transform-box: fill-box; animation: rise .9s cubic-bezier(.2,.8,.2,1) both; }
+@keyframes rise { from { transform: scaleY(.35); } to { transform: scaleY(1); } }
+.stake-key { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 12px; color: var(--hero-ink-2); margin: -8px 0 0; padding: 0; list-style: none; }
+.stake-key li { display: flex; align-items: center; gap: 6px; }
+.stake-key svg { flex: none; }
+
+/* ---------- ledger ---------- */
+main.wrap { padding-block: 26px 40px; }
+#app { display: flex; flex-direction: column; gap: 22px; }
+.picker { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; margin-inline: -4px; padding: 4px; }
+.picker::-webkit-scrollbar { display: none; }
+.chip { flex: none; border: 1px solid var(--line); background: var(--surface); color: var(--ink-2); border-radius: 999px; padding: 6px 13px; font-size: 14px; font-weight: 500; white-space: nowrap; display: inline-flex; align-items: center; gap: 7px; min-height: 34px; }
+.chip:hover { border-color: var(--ink-3); color: var(--ink); }
+.chip[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: var(--bg); }
+.resort-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 16px; }
+.resort-head h2 { font-family: var(--display); font-weight: 700; font-size: clamp(34px, 6vw, 52px); line-height: 1; text-transform: uppercase; letter-spacing: 0.01em; margin: 0; }
+.resort-head p { margin: 0; color: var(--ink-2); font-size: 14px; }
+
+.tiles { display: grid; grid-template-columns: 1.5fr repeat(4, minmax(0, 1fr)); gap: 0; border-block: 1px solid var(--line); }
+.tile { padding: 16px 16px 16px 0; min-width: 0; }
+.tile + .tile { padding-left: 16px; border-left: 1px solid var(--line); }
+.tile .k { font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-3); font-weight: 600; }
+.tile .v { font-family: var(--display); font-weight: 700; font-size: 44px; line-height: 1.05; font-variant-numeric: tabular-nums; }
+.tile .v small { font-size: 0.45em; font-weight: 600; color: var(--ink-2); margin-left: 3px; }
+.tile.lead .v { font-size: clamp(64px, 12vw, 92px); line-height: 0.95; color: var(--accent); }
+.tile .d { font-size: 13px; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 18px; min-width: 0; }
+.card-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 16px; margin-bottom: 12px; }
+.card h3 { font-family: var(--display); font-weight: 600; font-size: 24px; text-transform: uppercase; letter-spacing: 0.03em; margin: 0; line-height: 1.1; }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; padding: 2px; background: var(--bg); }
+.seg button { border: 0; background: transparent; padding: 6px 12px; border-radius: 6px; font-size: 13px; font-weight: 500; color: var(--ink-2); min-height: 32px; }
+.seg button[aria-pressed="true"] { background: var(--surface); color: var(--ink); box-shadow: 0 0 0 1px var(--line); }
+.controls { display: flex; flex-wrap: wrap; gap: 8px; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 6px; }
+.lg { border: 1px solid transparent; background: transparent; border-radius: 999px; padding: 4px 10px 4px 8px; font-size: 13px; color: var(--ink-2); display: inline-flex; align-items: center; gap: 7px; min-height: 32px; }
+button.lg { border-color: var(--line); }
+button.lg[aria-pressed="false"] { color: var(--ink-3); text-decoration: line-through; }
+button.lg[aria-pressed="false"] .key { opacity: 0.3; }
+.key { width: 18px; height: 0; border-top: 3px solid var(--c, var(--ink-3)); border-radius: 2px; flex: none; }
+.key.dash { border-top-style: dashed; border-top-width: 2px; }
+.key.box { height: 10px; border: 0; background: var(--band); border-radius: 2px; outline: 1px solid var(--line); }
+#chart { position: relative; width: 100%; touch-action: pan-y; }
+#chart svg { display: block; width: 100%; overflow: visible; }
+#chart text { font-family: var(--body); font-size: 11px; fill: var(--ink-3); font-variant-numeric: tabular-nums; }
+#chart .endlab { fill: var(--ink-2); font-weight: 500; }
+#chart .curlab { fill: var(--ink); font-family: var(--display); font-size: 17px; font-weight: 700; paint-order: stroke; stroke: var(--surface); stroke-width: 4px; stroke-linejoin: round; }
+.curline { stroke-dasharray: 1; stroke-dashoffset: 0; animation: draw 1s ease-out both; }
+@keyframes draw { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
+.tip { position: absolute; top: 8px; pointer-events: none; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; font-size: 12px; box-shadow: 0 6px 20px rgba(8, 15, 28, 0.18); min-width: 150px; z-index: 2; }
+.tip .t { font-weight: 600; color: var(--ink); margin-bottom: 4px; }
+.tip .r { display: flex; align-items: center; gap: 7px; color: var(--ink-2); white-space: nowrap; }
+.tip .r b { color: var(--ink); font-variant-numeric: tabular-nums; min-width: 34px; text-align: right; font-weight: 600; }
+.sub { font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-3); font-weight: 600; margin: 14px 0 8px; }
+.seasons { display: flex; flex-wrap: wrap; gap: 6px; }
+.seasons .chip { font-variant-numeric: tabular-nums; padding-inline: 11px; }
+.seasons .chip .key { width: 12px; display: none; }
+.seasons .chip[aria-pressed="true"] { background: var(--wash); border-color: var(--ink-3); color: var(--ink); }
+.seasons .chip[aria-pressed="true"] .key { display: block; }
+.seasons .chip em { font-style: normal; font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-3); }
+.note { font-size: 13px; color: var(--ink-3); margin: 10px 0 0; }
+
+.tablebox { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+th { font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-3); font-weight: 600; text-align: right; padding: 6px 8px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+th:first-child, td:first-child { text-align: left; padding-left: 0; }
+td { padding: 8px; border-bottom: 1px solid var(--line); text-align: right; white-space: nowrap; }
+td.bar { width: 46%; min-width: 120px; text-align: left; }
+.barrow { display: flex; align-items: center; gap: 8px; }
+.barrow i { display: block; height: 10px; border-radius: 0 4px 4px 0; background: var(--accent); opacity: 0.55; min-width: 2px; }
+tr.cur .barrow i { opacity: 1; }
+.barrow span { font-weight: 600; }
+tr.cur td { font-weight: 600; }
+tr.avgrow td { border-bottom: 0; color: var(--ink-2); }
+.tag { display: inline-block; font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-2); border: 1px solid var(--line); border-radius: 4px; padding: 0 5px; margin-left: 6px; font-weight: 600; }
+footer { color: var(--ink-2); font-size: 13px; max-width: 75ch; }
+footer p { margin: 0 0 8px; }
+footer a { color: inherit; }
+.msg { padding: 28px 0; color: var(--ink-2); }
+
+@media (max-width: 820px) {
+  .stakes { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+  .stake { flex: 0 0 calc((100% - 24px) / 4); padding: 8px 4px 10px; }
+  .stake svg text { display: none; }
+  .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .tile.lead { grid-column: 1 / -1; border-bottom: 1px solid var(--line); }
+  .tile { padding: 14px 12px 14px 0; }
+  .tile:nth-child(2), .tile:nth-child(4) { padding-left: 0; border-left: 0; }
+  .tile:nth-child(2), .tile:nth-child(3) { border-bottom: 1px solid var(--line); }
+  .tile .v { font-size: 38px; }
+  .card { padding: 14px; }
+  .stake .val { font-size: 28px; }
+  .stake .val small { font-size: 14px; }
+  .stake .nm { font-size: 14px; letter-spacing: 0.02em; min-height: 2.2em; display: flex; align-items: center; }
+  .stake .vs { font-size: 11px; }
+  td, th { padding: 7px 5px; font-size: 14px; }
+  th { font-size: 11px; }
+  td:first-child { white-space: normal; }
+  td:first-child .tag { margin-left: 0; display: table; }
+  td.bar { width: auto; min-width: 96px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .stake .snowfill, .curline { animation: none; }
+}
+</style>
+
+<header class="hero">
+  <canvas id="sky" aria-hidden="true"></canvas>
+  <div class="wrap">
+    <div>
+      <div class="eyebrow" id="asof">SNOTEL snow stations</div>
+      <h1>Powder Ledger</h1>
+      <p class="lede">This winter's snowfall at seven resorts, set against each of the last ten seasons.</p>
+    </div>
+    <div class="stakes" id="stakes" aria-label="Choose a resort"></div>
+    <ul class="stake-key" id="stakekey" hidden>
+      <li><svg width="16" height="12" aria-hidden="true"><rect x="1" y="2" width="14" height="10" rx="3" fill="#f7fafe"/></svg>Snowfall so far this season</li>
+      <li><svg width="18" height="12" aria-hidden="true"><line x1="0" y1="6" x2="18" y2="6" stroke="#f3f6fc" stroke-width="1.5" stroke-dasharray="3 3"/></svg>Ten-season average by this date</li>
+      <li><svg width="10" height="14" aria-hidden="true"><path d="M2 1h6M5 1v12M2 13h6" stroke="#c2cde2" stroke-width="1.5" fill="none"/></svg>Lowest to highest by this date</li>
+      <li><svg width="8" height="14" aria-hidden="true"><rect x="1" y="0" width="6" height="7" fill="#ff8a3d"/><rect x="1" y="7" width="6" height="7" fill="#1b2238" stroke="#c2cde2" stroke-width=".5"/></svg><span id="bandkey">Each stake band is 1 ft</span></li>
+    </ul>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="msg" id="msg">Loading station readings…</div>
+  <div id="app" hidden>
+    <div class="picker" id="picker" aria-label="Resort"></div>
+    <div class="resort-head"><h2 id="rname"></h2><p id="rmeta"></p></div>
+    <section class="tiles" id="tiles" aria-label="Season summary"></section>
+
+    <section class="card">
+      <div class="card-head">
+        <h3 id="charttitle">Season curve</h3>
+        <div class="controls">
+          <div class="seg" role="group" aria-label="Date range" id="zoomseg">
+            <button type="button" id="z-full" aria-pressed="true">Full season</button>
+            <button type="button" id="z-now" aria-pressed="false">To date</button>
+          </div>
+          <div class="seg" role="group" aria-label="Measure">
+            <button type="button" id="m-cum" aria-pressed="true">Snowfall</button>
+            <button type="button" id="m-depth" aria-pressed="false">Snow depth</button>
+          </div>
+        </div>
+      </div>
+      <div class="legend" id="legend"></div>
+      <div id="chart" tabindex="0" role="img" aria-label="Season curve chart. Use left and right arrow keys to read values by date."></div>
+      <div class="sub">Past seasons on the chart</div>
+      <div class="seasons" id="seasons"></div>
+      <p class="note">Tap a season to add or remove it. Up to three at a time, plus the biggest and leanest.</p>
+    </section>
+
+    <section class="card">
+      <div class="card-head"><h3>Season by season</h3></div>
+      <div class="tablebox"><table id="table"></table></div>
+    </section>
+
+    <footer>
+      <p><strong>Where the numbers come from.</strong> Daily readings from USDA NRCS SNOTEL stations at or near each resort: <span id="stations"></span>. A season runs October 1 to May 31.</p>
+      <p>Snowfall is estimated by adding up each day's rise on the station's snow-depth sensor. Snow settles between readings, so these totals run lower than the figures resorts report from their own snow stakes. They are consistent from year to year, which is what makes the comparisons fair.</p>
+      <p><a href="https://www.nrcs.usda.gov/resources/data-and-reports/snow-and-water-interactive-map">NRCS snow and water data</a></p>
+    </footer>
+  </div>
+</main>
+
+<script>
+(function () {
+  "use strict";
+  var $ = function (s) { return document.querySelector(s); };
+  var esc = function (s) { return String(s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); };
+  var MONTHS = [["Oct", 31], ["Nov", 30], ["Dec", 31], ["Jan", 31], ["Feb", 28], ["Mar", 31], ["Apr", 30], ["May", 31]];
+  var PICK_COLORS = ["var(--s4)", "var(--s5)", "var(--s6)"];
+  var DATA = null;
+  var state = { resort: 0, metric: "cum", showAvg: true, showBand: true, showMax: true, showMin: true, picks: [], hover: null, zoom: false };
+  try { var saved = JSON.parse(localStorage.getItem("powder-ledger") || "null"); if (saved && typeof saved.resort === "number") state.resort = saved.resort; } catch (e) {}
+
+  function dayLabel(i) { var m = 0; while (m < 7 && i >= MONTHS[m][1]) { i -= MONTHS[m][1]; m++; } return MONTHS[m][0] + " " + (i + 1); }
+  function fmt(v) { return String(Math.round(v)); }
+  function last(a) { return a[a.length - 1]; }
+  function shortSeason(s) { return "’" + s.slice(2, 4) + "–" + s.slice(5); }
+
+  function derive(r) {
+    if (r._d) return r._d;
+    var cur = last(r.seasons), past = r.seasons.slice(0, -1), n = DATA.nDays, idx = cur.cum.length - 1;
+    function mk(key) {
+      var avg = [], lo = [], hi = [];
+      for (var d = 0; d < n; d++) {
+        var s = 0, a = Infinity, b = -Infinity;
+        for (var j = 0; j < past.length; j++) { var v = past[j][key][d]; s += v; if (v < a) a = v; if (v > b) b = v; }
+        avg.push(s / past.length); lo.push(a); hi.push(b);
+      }
+      var score = function (p) { return key === "cum" ? p.cum[n - 1] : Math.max.apply(null, p.depth); };
+      var maxS = past[0], minS = past[0];
+      past.forEach(function (p) { if (score(p) > score(maxS)) maxS = p; if (score(p) < score(minS)) minS = p; });
+      return { avg: avg, lo: lo, hi: hi, maxS: maxS, minS: minS, score: score };
+    }
+    return (r._d = { cur: cur, past: past, idx: idx, cum: mk("cum"), depth: mk("depth") });
+  }
+
+  /* ---------- hero stakes ---------- */
+  function stakeScale() {
+    var top = 24;
+    DATA.resorts.forEach(function (r) { var D = derive(r); top = Math.max(top, D.cur.cum[D.idx], D.cum.hi[D.idx]); });
+    var ft = Math.ceil(top / 12), band = ft <= 10 ? 1 : ft <= 20 ? 2 : 5;
+    ft = Math.ceil(ft / band) * band;
+    return { max: ft * 12, band: band };
+  }
+  function stakeSvg(D, sc) {
+    var W = 116, H = 168, base = 156, top = 12, span = base - top;
+    var y = function (v) { return base - (Math.min(v, sc.max) / sc.max) * span; };
+    var v = D.cur.cum[D.idx], a = D.cum.avg[D.idx], lo = D.cum.lo[D.idx], hi = D.cum.hi[D.idx];
+    var out = '<svg viewBox="0 0 ' + W + " " + H + '" aria-hidden="true">';
+    var nb = sc.max / 12 / sc.band, bh = span / nb;
+    for (var i = 0; i < nb; i++) {
+      out += '<rect x="55" y="' + (base - (i + 1) * bh).toFixed(1) + '" width="7" height="' + bh.toFixed(1) + '" fill="' + (i % 2 ? "var(--stake-b)" : "var(--stake-a)") + '"/>';
+    }
+    out += '<rect x="55" y="' + top + '" width="7" height="' + span + '" fill="none" stroke="var(--hero-ink-2)" stroke-width="0.6"/>';
+    var yv = y(v), h = base - yv;
+    if (h > 1) {
+      var c = Math.min(7, h * 0.6);
+      out += '<g class="snowfill"><path d="M30 ' + base + "V" + (yv + c).toFixed(1) + "Q30 " + yv.toFixed(1) + " 39 " + (yv - c * 0.25).toFixed(1) + "Q58.5 " + (yv - c * 1.1).toFixed(1) + " 78 " + (yv - c * 0.25).toFixed(1) + "Q87 " + yv.toFixed(1) + " 87 " + (yv + c).toFixed(1) + "V" + base + 'Z" fill="var(--snow)"/>' +
+        '<path d="M68 ' + base + "V" + (yv + c * 0.4).toFixed(1) + "Q80 " + (yv - c * 0.2).toFixed(1) + " 87 " + (yv + c).toFixed(1) + "V" + base + 'Z" fill="var(--snow-shade)" opacity="0.55"/></g>';
+    }
+    out += '<line x1="14" y1="' + base + '" x2="104" y2="' + base + '" stroke="var(--hero-ink-2)" stroke-width="1.5" stroke-linecap="round"/>';
+    out += '<path d="M15 ' + y(hi).toFixed(1) + "h8M19 " + y(hi).toFixed(1) + "V" + y(lo).toFixed(1) + "M15 " + y(lo).toFixed(1) + 'h8" stroke="var(--hero-ink-2)" stroke-width="1.5" fill="none"/>';
+    var ya = y(a);
+    out += '<line x1="27" y1="' + ya.toFixed(1) + '" x2="92" y2="' + ya.toFixed(1) + '" stroke="var(--hero-ink)" stroke-width="1.5" stroke-dasharray="3 3"/>';
+    out += '<text x="95" y="' + (ya + 3.5).toFixed(1) + '" font-size="10" font-family="Barlow, Arial, sans-serif" font-weight="600" fill="var(--hero-ink)">avg</text>';
+    return out + "</svg>";
+  }
+  function renderStakes() {
+    var sc = stakeScale(), box = $("#stakes");
+    box.innerHTML = "";
+    DATA.resorts.forEach(function (r, i) {
+      var D = derive(r), v = D.cur.cum[D.idx], a = D.cum.avg[D.idx];
+      var b = document.createElement("button");
+      b.type = "button"; b.className = "stake"; b.id = "stake-" + i;
+      b.setAttribute("aria-pressed", String(i === state.resort));
+      var vs = a > 0.5 ? (v >= a ? "▲ " : "▼ ") + Math.round((v / a) * 100) + "% of avg" : "avg " + fmt(a) + "″";
+      b.innerHTML = stakeSvg(D, sc) + '<span class="nm">' + esc(r.name) + '</span><span class="val">' + fmt(v) + "<small>in</small></span>" + '<span class="vs">' + vs + "</span>";
+      b.setAttribute("aria-label", r.name + ": " + fmt(v) + " inches so far, average by now " + fmt(a) + " inches");
+      b.addEventListener("click", function () { selectResort(i); });
+      box.appendChild(b);
+    });
+    $("#bandkey").textContent = "Each stake band is " + sc.band + " ft";
+    $("#stakekey").hidden = false;
+  }
+
+  /* ---------- ledger ---------- */
+  function selectResort(i) {
+    state.resort = i; state.hover = null;
+    try { localStorage.setItem("powder-ledger", JSON.stringify({ resort: i })); } catch (e) {}
+    document.querySelectorAll(".stake").forEach(function (b, j) { b.setAttribute("aria-pressed", String(j === i)); });
+    document.querySelectorAll("#picker .chip").forEach(function (b, j) { b.setAttribute("aria-pressed", String(j === i)); });
+    renderResort(true);
+  }
+  function renderPicker() {
+    var box = $("#picker"); box.innerHTML = "";
+    DATA.resorts.forEach(function (r, i) {
+      var b = document.createElement("button");
+      b.type = "button"; b.className = "chip"; b.id = "pick-" + i; b.textContent = r.name;
+      b.setAttribute("aria-pressed", String(i === state.resort));
+      b.addEventListener("click", function () { selectResort(i); });
+      box.appendChild(b);
+    });
+  }
+  function tile(cls, k, v, unit, d) {
+    return '<div class="tile ' + cls + '"><div class="k">' + esc(k) + '</div><div class="v">' + esc(v) + (unit ? "<small>" + unit + "</small>" : "") + '</div><div class="d">' + esc(d) + "</div></div>";
+  }
+  function renderResort(animate) {
+    var r = DATA.resorts[state.resort], D = derive(r), n = DATA.nDays, c = D.cum;
+    var v = D.cur.cum[D.idx], a = c.avg[D.idx], when = dayLabel(D.idx);
+    $("#rname").textContent = r.name + ", " + r.state;
+    $("#rmeta").textContent = "Measured at " + r.station.name + " SNOTEL, " + r.station.elev.toLocaleString("en-US") + " ft";
+    var pct = a > 0.5 ? Math.round((v / a) * 100) + "%" : "—";
+    $("#tiles").innerHTML =
+      tile("lead", D.cur.complete ? D.cur.season + " season total" : D.cur.season + " season to date", fmt(v), "in", "Oct 1 to " + when + " · " + fmt(D.cur.depth[D.idx]) + " in on the ground now") +
+      tile("", "Of average by " + when, pct, "", "Average by now: " + fmt(a) + " in") +
+      tile("", "Average season", fmt(c.avg[n - 1]), "in", D.past.length + " seasons, " + D.past[0].season + " to " + last(D.past).season) +
+      tile("", "Biggest season", fmt(c.maxS.cum[n - 1]), "in", c.maxS.season) +
+      tile("", "Leanest season", fmt(c.minS.cum[n - 1]), "in", c.minS.season);
+    renderSeasons(); renderLegend(); renderChart(animate); renderTable();
+  }
+
+  function visibleSeasons() {
+    var r = DATA.resorts[state.resort], D = derive(r), M = D[state.metric], out = [];
+    if (state.showMax) out.push({ s: M.maxS, color: "var(--s2)", tag: "biggest" });
+    if (state.showMin && M.minS !== M.maxS) out.push({ s: M.minS, color: "var(--s3)", tag: "leanest" });
+    state.picks.forEach(function (p) {
+      var s = D.past.filter(function (x) { return x.season === p.season; })[0];
+      if (s && !out.some(function (o) { return o.s === s; })) out.push({ s: s, color: PICK_COLORS[p.slot], tag: "" });
+    });
+    return out;
+  }
+  function toggleSeason(name) {
+    var D = derive(DATA.resorts[state.resort]), M = D[state.metric];
+    var picked = state.picks.some(function (p) { return p.season === name; });
+    if (name === M.maxS.season && !picked) state.showMax = !state.showMax;
+    else if (name === M.minS.season && !picked) state.showMin = !state.showMin;
+    else if (picked) {
+      state.picks = state.picks.filter(function (p) { return p.season !== name; });
+      if (name === M.maxS.season) state.showMax = false;
+      if (name === M.minS.season) state.showMin = false;
+    } else {
+      if (state.picks.length >= 3) state.picks.shift();
+      var used = state.picks.map(function (p) { return p.slot; }), slot = [0, 1, 2].filter(function (x) { return used.indexOf(x) < 0; })[0];
+      state.picks.push({ season: name, slot: slot });
+    }
+    renderSeasons(); renderLegend(); renderChart(false);
+  }
+  function renderSeasons() {
+    var D = derive(DATA.resorts[state.resort]), M = D[state.metric], vis = visibleSeasons(), box = $("#seasons");
+    box.innerHTML = "";
+    D.past.slice().reverse().forEach(function (s) {
+      var on = vis.filter(function (o) { return o.s === s; })[0];
+      var b = document.createElement("button");
+      b.type = "button"; b.className = "chip"; b.id = "season-" + s.season;
+      b.setAttribute("aria-pressed", String(!!on));
+      var key = document.createElement("span"); key.className = "key"; if (on) key.style.setProperty("--c", on.color); b.appendChild(key);
+      b.appendChild(document.createTextNode(s.season));
+      var tag = s === M.maxS ? "biggest" : s === M.minS ? "leanest" : "";
+      if (tag) { var em = document.createElement("em"); em.textContent = tag; b.appendChild(em); }
+      b.addEventListener("click", function () { toggleSeason(s.season); });
+      box.appendChild(b);
+    });
+  }
+  function renderLegend() {
+    var D = derive(DATA.resorts[state.resort]), box = $("#legend");
+    box.innerHTML = "";
+    function item(label, cls, color, flag) {
+      var el = document.createElement(flag ? "button" : "span");
+      el.className = "lg";
+      if (flag) { el.type = "button"; el.id = "lg-" + flag; el.setAttribute("aria-pressed", String(state[flag])); el.addEventListener("click", function () { state[flag] = !state[flag]; renderLegend(); renderChart(false); }); }
+      var k = document.createElement("span"); k.className = "key " + cls; if (color) k.style.setProperty("--c", color);
+      el.appendChild(k); el.appendChild(document.createTextNode(label)); box.appendChild(el);
+    }
+    item(D.cur.season + " (this season)", "", "var(--s1)", null);
+    item(D.past.length + "-season average", "dash", "var(--avg)", "showAvg");
+    item("Range of all " + D.past.length + " seasons", "box", null, "showBand");
+    visibleSeasons().forEach(function (o) { item(o.s.season + (o.tag ? " (" + o.tag + ")" : ""), "", o.color, null); });
+  }
+
+  function niceMax(v) {
+    var steps = [5, 10, 20, 25, 50, 100, 200], step = 200;
+    for (var i = 0; i < steps.length; i++) { if (v / steps[i] <= 5) { step = steps[i]; break; } }
+    return { max: Math.max(step, Math.ceil(v / step) * step), step: step };
+  }
+  var geom = null;
+  function renderChart(animate) {
+    var box = $("#chart"), r = DATA.resorts[state.resort], D = derive(r), key = state.metric, M = D[key];
+    var n = state.zoom && !D.cur.complete ? Math.min(DATA.nDays, D.idx + 22) : DATA.nDays;
+    $("#zoomseg").hidden = D.cur.complete;
+    var W = Math.max(280, box.clientWidth), small = W < 560, H = small ? 300 : 380;
+    var m = { l: 34, r: small ? 50 : 62, t: 16, b: 26 };
+    var top = Math.max.apply(null, M.hi.slice(0, n).concat(D.cur[key]));
+    var ny = niceMax(top);
+    var x = function (d) { return m.l + (d / (n - 1)) * (W - m.l - m.r); };
+    var y = function (v) { return H - m.b - (v / ny.max) * (H - m.t - m.b); };
+    var path = function (arr, upto) { var p = ""; for (var d = 0, e = Math.min(upto || n, arr.length); d < e; d++) p += (d ? "L" : "M") + x(d).toFixed(1) + " " + y(arr[d]).toFixed(1); return p; };
+    var s = '<svg viewBox="0 0 ' + W + " " + H + '" height="' + H + '">';
+    for (var t = 0; t <= ny.max; t += ny.step) {
+      s += '<line x1="' + m.l + '" x2="' + (W - m.r) + '" y1="' + y(t) + '" y2="' + y(t) + '" stroke="var(--line)" stroke-width="1"/>';
+      s += '<text x="' + (m.l - 6) + '" y="' + (y(t) + 4) + '" text-anchor="end">' + t + "</text>";
+    }
+    s += '<text x="0" y="' + (m.t - 6) + '">inches</text>';
+    var d0 = 0;
+    MONTHS.forEach(function (mo) {
+      if (d0 > n - 1) return;
+      s += '<line x1="' + x(d0) + '" x2="' + x(d0) + '" y1="' + (H - m.b) + '" y2="' + (H - m.b + 4) + '" stroke="var(--ink-3)" stroke-width="1"/>';
+      var d1 = Math.min(d0 + mo[1], n - 1);
+      if (x(d1) - x(d0) > 26) s += '<text x="' + x((d0 + d1) / 2) + '" y="' + (H - 6) + '" text-anchor="middle">' + mo[0] + "</text>";
+      d0 += mo[1];
+    });
+    if (state.showBand) {
+      var bp = path(M.hi); for (var d = n - 1; d >= 0; d--) bp += "L" + x(d).toFixed(1) + " " + y(M.lo[d]).toFixed(1);
+      s += '<path d="' + bp + 'Z" fill="var(--band)"/>';
+    }
+    var labels = [], vis = visibleSeasons();
+    vis.forEach(function (o) {
+      s += '<path d="' + path(o.s[key]) + '" fill="none" stroke="' + o.color + '" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>';
+      labels.push({ y: y(o.s[key][n - 1]), text: shortSeason(o.s.season), color: o.color });
+    });
+    if (state.showAvg) {
+      s += '<path d="' + path(M.avg) + '" fill="none" stroke="var(--avg)" stroke-width="2" stroke-dasharray="5 4" stroke-linejoin="round"/>';
+      labels.push({ y: y(M.avg[n - 1]), text: "avg", color: "var(--avg)" });
+    }
+    var cv = D.cur[key], ci = D.idx;
+    s += '<path class="' + (animate ? "curline" : "") + '" pathLength="1" d="' + path(cv) + '" fill="none" stroke="var(--s1)" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round"/>';
+    s += '<circle cx="' + x(ci) + '" cy="' + y(cv[ci]) + '" r="5.5" fill="var(--s1)" stroke="var(--surface)" stroke-width="2"/>';
+    if (D.cur.complete) labels.push({ y: y(cv[ci]), text: shortSeason(D.cur.season), color: "var(--s1)" });
+    else {
+      var flip = x(ci) > W - m.r - 90;
+      s += '<text class="curlab" x="' + (x(ci) + (flip ? -10 : 10)) + '" y="' + Math.max(m.t + 12, y(cv[ci]) - 9) + '"' + (flip ? ' text-anchor="end"' : "") + ">" + fmt(cv[ci]) + " in · " + dayLabel(ci) + "</text>";
+    }
+    labels.sort(function (a, b) { return a.y - b.y; });
+    for (var i = 1; i < labels.length; i++) if (labels[i].y - labels[i - 1].y < 13) labels[i].y = labels[i - 1].y + 13;
+    var over = labels.length ? last(labels).y - (H - m.b) : 0;
+    if (over > 0) labels.forEach(function (l) { l.y -= over; });
+    for (i = labels.length - 2; i >= 0; i--) if (labels[i + 1].y - labels[i].y < 13) labels[i].y = labels[i + 1].y - 13;
+    labels.forEach(function (l) {
+      s += '<line x1="' + (W - m.r + 4) + '" x2="' + (W - m.r + 12) + '" y1="' + l.y + '" y2="' + l.y + '" stroke="' + l.color + '" stroke-width="3" stroke-linecap="round"/>';
+      s += '<text class="endlab" x="' + (W - m.r + 16) + '" y="' + (l.y + 4) + '">' + esc(l.text) + "</text>";
+    });
+    s += '<g id="xh"></g></svg>';
+    box.innerHTML = s;
+    geom = { W: W, H: H, m: m, x: x, y: y, n: n, D: D, M: M, key: key, vis: vis };
+    $("#charttitle").textContent = key === "cum" ? "Snowfall through the season" : "Snow depth through the season";
+    if (state.hover != null) drawHover(state.hover);
+  }
+  function drawHover(d) {
+    var g = geom, box = $("#chart"), xh = box.querySelector("#xh"); if (!g || !xh) return;
+    var old = box.querySelector(".tip"); if (old) old.remove();
+    if (d == null) { xh.innerHTML = ""; return; }
+    d = Math.max(0, Math.min(g.n - 1, d));
+    var rows = [];
+    if (d <= g.D.idx) rows.push({ c: "var(--s1)", v: g.D.cur[g.key][d], l: g.D.cur.season });
+    if (state.showAvg) rows.push({ c: "var(--avg)", v: g.M.avg[d], l: "average", dash: true });
+    g.vis.forEach(function (o) { rows.push({ c: o.color, v: o.s[g.key][d], l: o.s.season }); });
+    if (state.showBand) rows.push({ c: null, l: "range", range: fmt(g.M.lo[d]) + "–" + fmt(g.M.hi[d]) });
+    var s = '<line x1="' + g.x(d) + '" x2="' + g.x(d) + '" y1="' + g.m.t + '" y2="' + (g.H - g.m.b) + '" stroke="var(--ink-3)" stroke-width="1"/>';
+    rows.forEach(function (r) { if (r.c) s += '<circle cx="' + g.x(d) + '" cy="' + g.y(r.v) + '" r="4" fill="' + r.c + '" stroke="var(--surface)" stroke-width="2"/>'; });
+    xh.innerHTML = s;
+    var tip = document.createElement("div"); tip.className = "tip";
+    var t = document.createElement("div"); t.className = "t"; t.textContent = dayLabel(d); tip.appendChild(t);
+    rows.sort(function (a, b) { return (b.v == null ? -1 : b.v) - (a.v == null ? -1 : a.v); }).forEach(function (r) {
+      var row = document.createElement("div"); row.className = "r";
+      var k = document.createElement("span"); k.className = "key" + (r.dash ? " dash" : r.c ? "" : " box"); if (r.c) k.style.setProperty("--c", r.c);
+      var b = document.createElement("b"); b.textContent = r.range || fmt(r.v);
+      var l = document.createElement("span"); l.textContent = r.l;
+      row.appendChild(k); row.appendChild(b); row.appendChild(l); tip.appendChild(row);
+    });
+    box.appendChild(tip);
+    var tw = tip.offsetWidth, left = g.x(d) + 14;
+    if (left + tw > g.W - 4) left = g.x(d) - tw - 14;
+    tip.style.left = Math.max(0, left) + "px";
+  }
+  function bindChart() {
+    var box = $("#chart");
+    function at(e) {
+      if (!geom) return;
+      var rc = box.getBoundingClientRect(), px = e.clientX - rc.left;
+      var d = Math.round(((px - geom.m.l) / (geom.W - geom.m.l - geom.m.r)) * (geom.n - 1));
+      state.hover = Math.max(0, Math.min(geom.n - 1, d)); drawHover(state.hover);
+    }
+    box.addEventListener("pointermove", at);
+    box.addEventListener("pointerdown", at);
+    box.addEventListener("pointerleave", function (e) { if (e.pointerType === "mouse") { state.hover = null; drawHover(null); } });
+    box.addEventListener("blur", function () { state.hover = null; drawHover(null); });
+    box.addEventListener("keydown", function (e) {
+      if (e.key !== "ArrowLeft" && e.key !== "ArrowRight" || !geom) return;
+      e.preventDefault();
+      var d = state.hover == null ? geom.D.idx : state.hover + (e.key === "ArrowLeft" ? -1 : 1) * (e.shiftKey ? 7 : 1);
+      state.hover = Math.max(0, Math.min(geom.n - 1, d)); drawHover(state.hover);
+    });
+    var tm; window.addEventListener("resize", function () { clearTimeout(tm); tm = setTimeout(function () { renderChart(false); }, 120); });
+  }
+
+  function renderTable() {
+    var r = DATA.resorts[state.resort], D = derive(r), n = DATA.nDays, c = D.cum, when = dayLabel(D.idx);
+    var top = Math.max(c.maxS.cum[n - 1], D.cur.cum[D.idx]);
+    var h = "<thead><tr><th>Season</th><th>By " + when + '</th><th style="text-align:left">Season total</th><th>Deepest</th></tr></thead><tbody>';
+    function row(s, isCur) {
+      var total = isCur && !s.complete ? s.cum[D.idx] : s.cum[n - 1];
+      var tag = s === c.maxS ? '<span class="tag">Biggest</span>' : s === c.minS ? '<span class="tag">Leanest</span>' : isCur && !s.complete ? '<span class="tag">So far</span>' : "";
+      return '<tr class="' + (isCur ? "cur" : "") + '"><td>' + esc(s.season) + tag + "</td><td>" + fmt(s.cum[Math.min(D.idx, s.cum.length - 1)]) + ' in</td><td class="bar"><div class="barrow"><i style="width:' + ((total / top) * 78).toFixed(1) + '%"></i><span>' + fmt(total) + " in</span></div></td><td>" + fmt(Math.max.apply(null, s.depth)) + " in</td></tr>";
+    }
+    h += row(D.cur, true);
+    D.past.slice().reverse().forEach(function (s) { h += row(s, false); });
+    var avgDeep = D.past.reduce(function (a, s) { return a + Math.max.apply(null, s.depth); }, 0) / D.past.length;
+    h += '<tr class="avgrow"><td>' + D.past.length + "-season average</td><td>" + fmt(c.avg[D.idx]) + ' in</td><td class="bar"><div class="barrow"><i style="width:' + ((c.avg[n - 1] / top) * 78).toFixed(1) + '%;background:var(--ink-3)"></i><span>' + fmt(c.avg[n - 1]) + " in</span></div></td><td>" + fmt(avgDeep) + " in</td></tr></tbody>";
+    $("#table").innerHTML = h;
+  }
+
+  /* ---------- hero sky: ridgelines and falling snow ---------- */
+  function sky() {
+    var cv = $("#sky"), hero = cv.parentNode, ctx = cv.getContext("2d"), ridge = document.createElement("canvas");
+    var W = 0, H = 0, dpr = 1, flakes = [], raf = 0, visible = true;
+    var still = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    function rng(seed) { return function () { seed |= 0; seed = (seed + 0x6d2b79f5) | 0; var t = Math.imul(seed ^ (seed >>> 15), 1 | seed); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+    function drawRidges() {
+      ridge.width = cv.width; ridge.height = cv.height;
+      var c = ridge.getContext("2d"); c.setTransform(dpr, 0, 0, dpr, 0, 0);
+      var layers = [{ base: 0.50, amp: 0.20, col: "#4d6aa3", seed: 11, cap: "rgba(232,240,252,0.55)" }, { base: 0.66, amp: 0.16, col: "#2c477f", seed: 29, cap: "rgba(232,240,252,0.25)" }, { base: 0.82, amp: 0.12, col: "#14264f", seed: 53, cap: null }];
+      layers.forEach(function (L) {
+        var r = rng(L.seed), pts = [], steps = Math.max(8, Math.round(W / 70)), xx, i;
+        for (i = 0; i <= steps; i++) pts.push({ x: (i / steps) * W, y: H * (L.base - L.amp * (0.25 + 0.75 * r()) * (i % 2 ? 1 : 0.35)) });
+        c.beginPath(); c.moveTo(0, H);
+        pts.forEach(function (p) { c.lineTo(p.x, p.y); });
+        c.lineTo(W, H); c.closePath(); c.fillStyle = L.col; c.fill();
+        if (L.cap) {
+          c.fillStyle = L.cap;
+          for (i = 1; i < pts.length - 1; i += 2) {
+            var p = pts[i], a = pts[i - 1], b = pts[i + 1], k = 0.3;
+            c.beginPath(); c.moveTo(p.x, p.y);
+            c.lineTo(p.x + (b.x - p.x) * k, p.y + (b.y - p.y) * k);
+            c.lineTo(p.x + (b.x - p.x) * k * 0.4, p.y + (b.y - p.y) * k * 0.75);
+            c.lineTo(p.x, p.y + (a.y - p.y) * k * 0.5);
+            c.lineTo(p.x + (a.x - p.x) * k * 0.5, p.y + (a.y - p.y) * k * 0.8);
+            c.lineTo(p.x + (a.x - p.x) * k, p.y + (a.y - p.y) * k);
+            c.closePath(); c.fill();
+          }
+        }
+      });
+    }
+    function size() {
+      var rc = hero.getBoundingClientRect();
+      if (Math.abs(rc.width - W) < 1 && Math.abs(rc.height - H) < 1) return;
+      W = rc.width; H = rc.height; dpr = Math.min(2, window.devicePixelRatio || 1);
+      cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
+      drawRidges();
+      var r = rng(7), count = Math.round(Math.min(170, (W * H) / 5200));
+      flakes = [];
+      for (var i = 0; i < count; i++) { var z = r(); flakes.push({ x: r() * W, y: r() * H, r: 0.7 + z * 2.1, v: 12 + z * 34, sw: 6 + r() * 16, ph: r() * 6.28, a: 0.35 + z * 0.55 }); }
+      frame(0, true);
+    }
+    var prev = 0;
+    function frame(ts, once) {
+      var dt = once ? 0 : Math.min(0.05, (ts - prev) / 1000 || 0); prev = ts;
+      ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.clearRect(0, 0, cv.width, cv.height); ctx.drawImage(ridge, 0, 0);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.fillStyle = "#ffffff";
+      for (var i = 0; i < flakes.length; i++) {
+        var f = flakes[i]; f.y += f.v * dt; f.ph += dt * 0.8; if (f.y > H + 4) { f.y = -4; }
+        ctx.globalAlpha = f.a; ctx.beginPath(); ctx.arc(f.x + Math.sin(f.ph) * f.sw, f.y, f.r, 0, 6.2832); ctx.fill();
+      }
+      ctx.globalAlpha = 1;
+      if (!once && !still && visible && !document.hidden) raf = requestAnimationFrame(frame);
+      else if (!once) raf = 0;
+    }
+    function go() { if (!raf && !still && visible && !document.hidden) { prev = performance.now(); raf = requestAnimationFrame(frame); } }
+    size(); go();
+    window.addEventListener("resize", size);
+    if (window.ResizeObserver) new ResizeObserver(size).observe(hero);
+    document.addEventListener("visibilitychange", go);
+    if (window.IntersectionObserver) new IntersectionObserver(function (es) { visible = es[0].isIntersecting; go(); }).observe(hero);
+  }
+
+  /* ---------- boot ---------- */
+  function start(data) {
+    DATA = data;
+    if (!DATA.resorts[state.resort]) state.resort = 0;
+    var d = new Date(DATA.through + "T12:00:00");
+    $("#asof").textContent = "SNOTEL station readings through " + d.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
+    $("#stations").textContent = DATA.resorts.map(function (r) { return r.name + " at " + r.station.name + " (" + r.station.elev.toLocaleString("en-US") + " ft)"; }).join("; ");
+    $("#msg").hidden = true; $("#app").hidden = false;
+    renderStakes(); renderPicker(); bindChart(); renderResort(true);
+    $("#m-cum").addEventListener("click", function () { setMetric("cum"); });
+    $("#m-depth").addEventListener("click", function () { setMetric("depth"); });
+    $("#z-full").addEventListener("click", function () { setZoom(false); });
+    $("#z-now").addEventListener("click", function () { setZoom(true); });
+  }
+  function setZoom(z) {
+    state.zoom = z; state.hover = null;
+    $("#z-full").setAttribute("aria-pressed", String(!z)); $("#z-now").setAttribute("aria-pressed", String(z));
+    renderChart(false);
+  }
+  function setMetric(k) {
+    state.metric = k;
+    $("#m-cum").setAttribute("aria-pressed", String(k === "cum")); $("#m-depth").setAttribute("aria-pressed", String(k === "depth"));
+    renderSeasons(); renderLegend(); renderChart(true);
+  }
+  try { sky(); } catch (e) {}
+  fetch("data.json", { cache: "no-store" })
+    .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+    .then(start)
+    .catch(function () { $("#msg").textContent = "The station readings did not load. Reload the page to try again."; });
+})();
+</script>
