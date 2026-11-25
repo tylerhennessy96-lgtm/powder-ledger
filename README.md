@@ -6,10 +6,12 @@ against each of the last ten seasons, their average, and the biggest and leanest
 
 ## Files
 
-- `index.html` — the page (styles and script inline). It loads `data.json` from the same folder.
+- `artifact.html` — the page source (styles and script inline), written as a fragment for publishing as a Claude artifact. Edit this one.
+- `index.html` — the complete page GitHub Pages serves, generated from `artifact.html` by `scripts/build_site.sh`. It loads `data.json` from the same folder.
 - `data.json` — processed season data, one entry per resort.
 - `scripts/refresh.sh` — downloads daily readings and rebuilds `data.json`.
 - `scripts/build_data.py` — turns the raw readings into `data.json`; the resort-to-station list lives here.
+- `scripts/build_site.sh` — rebuilds `index.html` after a change to `artifact.html`.
 
 ## Data
 
@@ -28,9 +30,8 @@ Needs `curl` and Python 3, and network access to `wcc.sc.egov.usda.gov`.
 
 ## View locally
 
-`index.html` is written as a page fragment for publishing as a Claude artifact, so it has
-no `<html>` wrapper of its own. To preview it, serve the folder and open it in a browser:
-
 ```bash
 python3 -m http.server 8000
 ```
+
+Then open http://localhost:8000/.
