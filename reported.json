@@ -1,5 +1,5 @@
 {
- "fetched": "2026-11-25",
+ "fetched": "2026-11-26",
  "resorts": {
   "winter-park": [
    {
@@ -46,7 +46,7 @@
     "name": "Alta",
     "url": "https://www.alta.com/weather",
     "total": 71.0,
-    "base": 38.0,
+    "base": 37.0,
     "asOf": "2026-11-25",
     "auto": true,
     "secondary": false
@@ -58,7 +58,7 @@
     "url": "https://www.skitaos.com/weather",
     "total": 23.8,
     "base": 19.0,
-    "asOf": "2026-11-25",
+    "asOf": "2026-11-26",
     "auto": true,
     "secondary": false
    }
@@ -68,8 +68,8 @@
     "name": "Jackson Hole summit",
     "url": "https://www.jacksonhole.com/mountain-report",
     "total": 49.0,
-    "base": 24.0,
-    "asOf": "2026-11-24",
+    "base": 22.0,
+    "asOf": "2026-11-25",
     "auto": true,
     "secondary": false
    },
@@ -78,7 +78,7 @@
     "url": "https://www.jacksonhole.com/mountain-report",
     "total": 23.0,
     "base": 10.0,
-    "asOf": "2026-11-24",
+    "asOf": "2026-11-25",
     "auto": true,
     "secondary": true
    }
@@ -88,8 +88,8 @@
     "name": "Big Sky",
     "url": "https://www.bigskyresort.com/snow-report",
     "total": null,
-    "base": 18.0,
-    "asOf": "2026-11-25",
+    "base": 17.0,
+    "asOf": "2026-11-26",
     "auto": true,
     "secondary": false
    }
